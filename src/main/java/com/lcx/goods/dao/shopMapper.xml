@@ -1,0 +1,61 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.lcx.goods.dao.shopMapper">
+	<resultMap type="Shop" id="shopResultMap">
+		<id  column="id"  property="id"/>
+		<result column="name"  property="name"/>
+		
+		
+		<!-- 封装多对多 -->
+		<collection property="goods" ofType="good" select="selectsByShopId" column="id"></collection>
+	</resultMap>
+	
+	<select id="selects" resultMap="shopResultMap">
+		select * from shop s
+		<where>
+			<if test="name!=null and name!=''">
+				and name like concat('%',#{name},'%')
+			</if>
+		</where>
+	 </select>
+	 
+	 <select id="selectsByShopId" resultType="Good">
+	 	select g.id,g.`name` from middle m LEFT JOIN goods g
+  		 on m.gid =g.id where sid =#{sid} 
+	 </select>
+	 
+	
+	 <!-- 增加店铺 返回自增主键值 -->
+	 <insert id="insert" useGeneratedKeys="true" keyProperty="id" >
+	 	insert into shop (name,created) values(#{name},#{created})
+	 </insert>
+	 
+	 <insert id="insertMiddle">
+	 	insert into middle (sid,gid) values
+	 	<foreach collection="gids" item="gid" separator=",">
+	 		(#{sid},#{gid})
+	 	</foreach>
+	 </insert>
+	 
+	 <select id="selectGoods" resultType="Good">
+	 	select * from goods
+	 </select>
+	 
+	 <delete id="deleteShop">
+	 	delete from shop where id in
+	 	<foreach collection="array" item="sids" separator="," open="(" close=")">
+	 		#{sids}
+	 	</foreach>
+	 </delete>
+	 
+	 <delete id="deleteMiddle">
+	 	delete from middle where sid in
+	 	<foreach collection="array" item="sids" separator="," open="(" close=")">
+	 		#{sids}
+	 	</foreach>
+	 </delete>
+	 
+	 <select id="select" resultMap="shopResultMap">
+	 	select * from shop where id=#{id}
+	 </select>
+</mapper>
